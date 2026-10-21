@@ -1,45 +1,39 @@
-import pandas as pd
+from inside_the_game.insights import load_events
+
+
+def _ordinal(n: int) -> str:
+    return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
 
 
 def generate_commentary(csv_path: str):
+    df = load_events(csv_path).sort_values("minute")
+    teams = list(df["team"].unique())
+    score = {t: 0 for t in teams}
+    attempts = {}
+    lines = []
 
-    df = pd.read_csv(csv_path)
+    for r in df.itertuples():
+        tag = f"(event {r.event_id})"
+        if r.event in ("shot", "goal"):
+            attempts[r.player] = attempts.get(r.player, 0) + 1
+        n = attempts.get(r.player, 0)
 
-    commentary = []
-
-    for _, row in df.iterrows():
-
-        minute = row["minute"]
-        player = row["player"]
-        team = row["team"]
-        event = row["event"]
-
-        if event == "goal":
-            text = (
-                f"{minute}': GOAL! "
-                f"{player} scores for {team}."
+        if r.event == "goal":
+            score[r.team] += 1
+            lines.append(
+                f"{r.minute}': GOAL! {r.player} scores for {r.team} "
+                f"({r.xg:.2f} xG, attempt #{n}). "
+                f"{teams[0]} {score[teams[0]]}-{score[teams[1]]} {teams[1]} {tag}"
             )
-
-        elif event == "shot":
-            text = (
-                f"{minute}': "
-                f"{player} attempts a shot "
-                f"for {team}."
+        elif r.event == "shot":
+            kind = "a big chance" if r.xg >= 0.30 else "a speculative effort"
+            lines.append(
+                f"{r.minute}': {r.player} has {kind} for {r.team} "
+                f"({r.xg:.2f} xG), his {_ordinal(n)} attempt {tag}"
             )
-
-        elif event == "pass":
-            text = (
-                f"{minute}': "
-                f"{player} keeps possession "
-                f"for {team}."
-            )
-
+        elif r.event == "pass":
+            lines.append(f"{r.minute}': {r.player} keeps possession for {r.team} {tag}")
         else:
-            text = (
-                f"{minute}': "
-                f"{player} involved in play."
-            )
+            lines.append(f"{r.minute}': {r.player} involved in play {tag}")
 
-        commentary.append(text)
-
-    return commentary
+    return lines
