@@ -1,0 +1,12 @@
+minute,team,player,event,xg
+5,Arsenal,Saka,shot,0.12
+8,Liverpool,Salah,shot,0.20
+15,Arsenal,Odegaard,pass,0
+23,Arsenal,Saka,shot,0.35
+25,Arsenal,Havertz,goal,0.45
+48,Liverpool,Nunez,shot,0.18
+60,Liverpool,Salah,goal,0.42
+72,Arsenal,Saka,shot,0.50
+75,Arsenal,Saka,goal,0.50
+89,Liverpool,Diaz,shot,0.29
+
