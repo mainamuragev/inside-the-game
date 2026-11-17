@@ -1,4 +1,5 @@
 from inside_the_game.insights import load_events, build_facts
+from inside_the_game.llm import generate_narrative
 
 
 def generate_match_recap(results, csv_path: str = "data/raw/match_events.csv"):
@@ -26,4 +27,9 @@ def generate_match_recap(results, csv_path: str = "data/raw/match_events.csv"):
         f"Goals: {goal_text}. "
         + (f"Big chances that didn't go in: {missed_text}." if missed_text else "")
     )
-    return {"narrative": narrative, "facts": facts}
+    llm_text = generate_narrative(facts)
+    return {
+        "narrative": llm_text or narrative,
+        "facts": facts,
+        "source": "llm" if llm_text else "template",
+    }
